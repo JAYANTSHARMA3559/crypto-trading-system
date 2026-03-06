@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Trading Terminal</title>
+    <link rel="stylesheet" href="styles.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1"></script>
+</head>
+
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <rect width="32" height="32" rx="8" fill="#10B981" />
+                        <path d="M16 8L22 12V20L16 24L10 20V12L16 8Z" fill="#fff" />
+                    </svg>
+                    <span>TradeOS</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="index.html" class="nav-item active">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="14" y="14" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
+                    </svg>
+                    Dashboard
+                </a>
+                <a href="analytics.html" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                    </svg>
+                    Analytics
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="connection-status" id="status-indicator">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Connecting...</span>
+                </div>
+                <div class="time" id="time-display">--:--:--</div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar with Prices -->
+            <header class="topbar">
+                <div class="price-cards">
+                    <div class="price-card" id="ticker-btc">
+                        <div class="price-info">
+                            <span class="coin-name">Bitcoin</span>
+                            <span class="coin-symbol">BTC/USDT</span>
+                        </div>
+                        <div class="price-data">
+                            <span class="price" id="btc-price">--,---.--</span>
+                            <span class="change positive" id="btc-change">+0.00%</span>
+                        </div>
+                    </div>
+                    <div class="price-card" id="ticker-eth">
+                        <div class="price-info">
+                            <span class="coin-name">Ethereum</span>
+                            <span class="coin-symbol">ETH/USDT</span>
+                        </div>
+                        <div class="price-data">
+                            <span class="price" id="eth-price">--,---.--</span>
+                            <span class="change positive" id="eth-change">+0.00%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="ws-indicator" id="ws-status">
+                    <span class="pulse"></span>
+                    Live
+                </div>
+            </header>
+
+            <!-- Content Grid -->
+            <div class="content-grid">
+                <!-- Left Column: Chart + Positions -->
+                <div class="left-column">
+                    <!-- Chart Panel -->
+                    <section class="panel chart-panel">
+                        <div class="panel-header">
+                            <h2>Price Chart</h2>
+                            <div class="chart-tabs">
+                                <button class="tab active" data-symbol="BTCUSDT">BTC</button>
+                                <button class="tab" data-symbol="ETHUSDT">ETH</button>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="price-chart"></canvas>
+                        </div>
+                    </section>
+
+                    <!-- Positions Panel -->
+                    <section class="panel positions-panel">
+                        <div class="panel-header">
+                            <h2>Open Positions</h2>
+                        </div>
+                        <div class="positions-container">
+                            <div class="position-row" id="position-a">
+                                <div class="position-info">
+                                    <span class="position-label">Variant A</span>
+                                    <span class="position-symbol" id="pos-a-symbol">BTCUSDT</span>
+                                </div>
+                                <div class="position-side" id="pos-a-side">FLAT</div>
+                                <div class="position-meta">
+                                    <div class="meta-item">
+                                        <span class="meta-label">Entry</span>
+                                        <span class="meta-value" id="pos-a-entry">--</span>
+                                    </div>
+                                    <div class="meta-item">
+                                        <span class="meta-label">Current</span>
+                                        <span class="meta-value" id="pos-a-current">--</span>
+                                    </div>
+                                    <div class="meta-item">
+                                        <span class="meta-label">SL (15%)</span>
+                                        <span class="meta-value" id="pos-a-sl">--</span>
+                                    </div>
+                                    <div class="meta-item">
+                                        <span class="meta-label">Size</span>
+                                        <span class="meta-value" id="pos-a-qty">0.000</span>
+                                    </div>
+                                </div>
+                                <div class="position-pnl" id="pos-a-pnl">
+                                    <span class="pnl-value">$0.00</span>
+                                </div>
+                            </div>
+                            <div class="position-row" id="position-b">
+                                <div class="position-info">
+                                    <span class="position-label">Variant B</span>
+                                    <span class="position-symbol" id="pos-b-symbol">BTCUSDT</span>
+                                </div>
+                                <div class="position-side" id="pos-b-side">FLAT</div>
+                                <div class="position-meta">
+                                    <div class="meta-item">
+                                        <span class="meta-label">Entry</span>
+                                        <span class="meta-value" id="pos-b-entry">--</span>
+                                    </div>
+                                    <div class="meta-item">
+                                        <span class="meta-label">Current</span>
+                                        <span class="meta-value" id="pos-b-current">--</span>
+                                    </div>
+                                    <div class="meta-item">
+                                        <span class="meta-label">SL (10%)</span>
+                                        <span class="meta-value" id="pos-b-sl">--</span>
+                                    </div>
+                                    <div class="meta-item">
+                                        <span class="meta-label">Size</span>
+                                        <span class="meta-value" id="pos-b-qty">0.000</span>
+                                    </div>
+                                </div>
+                                <div class="position-pnl" id="pos-b-pnl">
+                                    <span class="pnl-value">$0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Right Column: Trading + Indicators + History -->
+                <div class="right-column">
+                    <!-- Trading Panel -->
+                    <section class="panel trading-panel">
+                        <div class="panel-header">
+                            <h2>Quick Trade</h2>
+                        </div>
+                        <div class="trade-form">
+                            <div class="form-row">
+                                <label>Asset</label>
+                                <select id="trade-symbol">
+                                    <option value="BTCUSDT">BTC/USDT</option>
+                                    <option value="ETHUSDT">ETH/USDT</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <label>Strategy</label>
+                                <select id="trade-variant">
+                                    <option value="A">Variant A — 15% Stop Loss</option>
+                                    <option value="B">Variant B — 10% Stop Loss</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <label>Amount</label>
+                                <input type="number" id="trade-quantity" value="0.001" step="0.001" min="0.001">
+                            </div>
+                            <div class="trade-actions">
+                                <button class="btn btn-buy" id="btn-buy">Buy Long</button>
+                                <button class="btn btn-sell" id="btn-sell">Sell Short</button>
+                            </div>
+                            <div class="trade-status" id="trading-status"></div>
+                        </div>
+                    </section>
+
+                    <!-- Indicators Panel -->
+                    <section class="panel indicators-panel">
+                        <div class="panel-header">
+                            <h2>Indicators</h2>
+                            <span class="strategy-badge">SMA/EMA Crossover</span>
+                        </div>
+                        <div class="indicators-grid">
+                            <div class="indicator">
+                                <span class="indicator-name">SMA (10)</span>
+                                <span class="indicator-value" id="sma-value">--</span>
+                            </div>
+                            <div class="indicator">
+                                <span class="indicator-name">EMA (5)</span>
+                                <span class="indicator-value" id="ema-value">--</span>
+                            </div>
+                            <div class="indicator signal-indicator">
+                                <span class="indicator-name">Signal</span>
+                                <span class="signal-badge" id="signal-value">HOLD</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Trade History Panel -->
+                    <section class="panel history-panel">
+                        <div class="panel-header">
+                            <h2>Trade History</h2>
+                            <div class="history-filters">
+                                <select id="filter-symbol">
+                                    <option value="">All</option>
+                                    <option value="BTCUSDT">BTC</option>
+                                    <option value="ETHUSDT">ETH</option>
+                                </select>
+                                <select id="filter-variant">
+                                    <option value="">All</option>
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="history-table-wrapper">
+                            <table class="history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Pair</th>
+                                        <th>Side</th>
+                                        <th>Size</th>
+                                        <th>Price</th>
+                                        <th>P&L</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="trades-body">
+                                    <tr class="empty-row">
+                                        <td colspan="6">No trades yet</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="history-summary">
+                            <div class="summary-stat">
+                                <span class="stat-value" id="total-trades">0</span>
+                                <span class="stat-label">Trades</span>
+                            </div>
+                            <div class="summary-stat">
+                                <span class="stat-value" id="win-rate">0%</span>
+                                <span class="stat-label">Win Rate</span>
+                            </div>
+                            <div class="summary-stat">
+                                <span class="stat-value" id="total-pnl">$0.00</span>
+                                <span class="stat-label">Total P&L</span>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
